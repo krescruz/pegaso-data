@@ -21,21 +21,24 @@ COLUMNAMES <- c(
 	'IMEXC'
 )
 
-# Lista file names
+# List file names
 FILES <- c(
 	paste(BASE_DIR, 'file_name_report_20170331.csv', sep='/'),
 )
 
+YEAR <- 2018
+
 # Deposit result in the directory /DATA RESULT
 for (file_origin in FILES) {
-  # Nombre de archivo Final
-  path_final = paste(BASE_DIR, '/DATA RESULT/', 'DATA_',
-  					 substr(file_origin, nchar(file_origin)-7,
-  					 nchar(file_origin)), sep='')
-  path_otros = paste(BASE_DIR, '/DATA RESULT/', 'DATA_OTROSPAG_',
-  					 substr(file_origin, nchar(file_origin)-7,
-  					 nchar(file_origin)), sep='')
-  resulData(file_origin, path_final, path_otros)
+	  # Define path name
+	  path_final = paste(BASE_DIR, '/DATA RESULT/', 'DATA_',
+	  					 substr(file_origin, nchar(file_origin)-7,
+	  					 nchar(file_origin)), sep='')
+	  path_otros = paste(BASE_DIR, '/DATA RESULT/', 'DATA_OTROSPAG_',
+	  					 substr(file_origin, nchar(file_origin)-7,
+	  					 nchar(file_origin)), sep='')
+	  #Init process
+	  resulData(file_origin, path_final, path_otros)
 }
 
 
@@ -63,22 +66,21 @@ resulData <- function(path_origin, path_perded, path_otrospag){
 	dataSerie <- getDFSerie(sat$Serie)
 	sat <- mergeDataSerie(sat, dataSerie)
 
-	sat.2017 <- getDataYear(sat, 2017)
-	sat.2016 <- getDataYear(sat, 2016)
-	sat.2018 <- getDataYear(sat, 2018)
-	
+	#Separate data for years
+	sat.year <- getDataYear(sat, YEAR)
+
 
 	# Geting data
-	sat.percepciones <- getDFPercepciones(sat.2017)
-	sat.deducciones <- getDFDeducciones(sat.2017)
+	sat.percepciones <- getDFPercepciones(sat.year)
+	sat.deducciones <- getDFDeducciones(sat.year)
 	sat.mov <- join(sat.percepciones, sat.deducciones, type = "full")
 	sat.mov <- sat.mov[order(sat.mov$TNOPR, sat.mov$NUMPR, sat.mov$NEMP), ]
 	# Save data
 	saveCsv(sat.mov, path_perded)
 
 	# Getting and save if exist other payments
-	if (nrow(sat.2017[!is.na(sat.2017$OtrClaveOtroPago), ])>0) {
-	  sat.otrosconceptos <- getDFOtrosPag(sat.2017)
+	if (nrow(sat.year[!is.na(sat.year$OtrClaveOtroPago), ])>0) {
+	  sat.otrosconceptos <- getDFOtrosPag(sat.year)
 	  saveCsv(sat.otrosconceptos, path_otrospag)
 	}
 
